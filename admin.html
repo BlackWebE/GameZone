@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
+</head>
+
+<body style="background:#0b0f19;color:white;font-family:Arial;text-align:center;padding:50px;">
+
+<h1>🔐 Admin Panel</h1>
+
+<select id="productId">
+  <option value="1">GTA 5</option>
+  <option value="2">Cyberpunk</option>
+</select>
+
+<br><br>
+
+<input id="keyInput" placeholder="Key gir" style="padding:10px;width:300px;">
+<input id="passwordInput" type="password" placeholder="Admin şifresi" style="padding:10px;width:300px;">
+
+<br><br>
+
+<button onclick="addKey()" style="padding:10px 20px;background:green;color:white;border:none;">
+  Key Ekle
+</button>
+
+<p id="result"></p>
+
+<h2>📊 Stok Durumu</h2>
+<div id="stockList"></div>
+
+<h2>💰 Kazanç Paneli</h2>
+
+<div id="stats" style="
+  background:#1e1e1e;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:20px;
+  color:white;
+">
+  Yükleniyor...
+</div>
+
+<h2>📦 Siparişler</h2>
+<div id="orderList"></div>
+
+<script>
+const API = "http://localhost:3002";
+
+async function addKey() {
+  const productId = document.getElementById("productId").value;
+  const key = document.getElementById("keyInput").value;
+  const password = document.getElementById("passwordInput").value;
+
+  const res = await fetch(API + "/add-key", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ productId, key, password })
+  });
+
+  const data = await res.json();
+
+  document.getElementById("result").innerText =
+    data.success ? "✅ Key eklendi" : "❌ Hata";
+ loadStock();
+}
+
+async function loadOrders() {
+  const res = await fetch(API + "/orders");
+  const data = await res.json();
+
+  const div = document.getElementById("orders");
+  div.innerHTML = data.map((o, i) => `
+  <p>
+    👤 ${o.customerName} - 🎮 ${o.productName} - 🔑 ${o.key} - 🕒 ${o.date}
+    <button onclick="deleteOrder(${i})">❌ Sil</button>
+  </p>
+`).join("");
+}
+
+async function loadStock() {
+  const res = await fetch(API + "/products");
+  const products = await res.json();
+
+  const div = document.getElementById("stockList");
+  div.innerHTML = products.map(p => `
+    <p>🎮 ${p.name} - Stok: ${p.stock}</p>
+  `).join("");
+}
+
+loadStock();
+
+loadOrders();
+
+</script>
+
+<script>
+function loadOrders() {
+  fetch("http://localhost:3002/orders")
+    .then(res => res.json())
+    .then(orders => {
+      const orderList = document.getElementById("orderList");
+
+      orderList.innerHTML = "";
+
+      orders.reverse().forEach((order, index) => {
+        orderList.innerHTML += `
+          <div style="
+            background:#1e1e1e;
+            padding:15px;
+            margin:10px 0;
+            border-radius:10px;
+            color:white;
+          ">
+            <b>👤 ${order.buyerName || "İsimsiz"}</b><br>
+            🎮 ${order.productName}<br>
+            🔑 ${order.key}<br>
+            🕒 ${order.date}<br><br>
+
+            <button onclick="deleteOrder(${orders.length - 1 - index})"
+              style="background:red;color:white;border:none;padding:5px 10px;border-radius:5px;">
+              Sil
+            </button>
+          </div>
+        `;
+      });
+    });
+}
+
+function deleteOrder(index) {
+  fetch("http://localhost:3002/delete-order", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ index })
+  })
+  .then(res => res.json())
+  .then(() => loadOrders());
+}
+
+// Sayfa açılınca yükle
+loadOrders();
+
+// 🔥 3 saniyede bir otomatik yenile
+setInterval(loadOrders, 3000);
+setInterval(loadStats, 3000);
+
+function loadStats() {
+  fetch("http://localhost:3002/orders")
+    .then(res => res.json())
+    .then(orders => {
+
+      let total = 0;
+      let today = 0;
+
+      const todayDate = new Date().toLocaleDateString("tr-TR");
+
+      orders.forEach(order => {
+        total += order.price || 0;
+
+        if (order.date && order.date.includes(todayDate)) {
+          today++;
+        }
+      });
+
+      document.getElementById("stats").innerHTML = `
+        💰 Toplam Kazanç: <b>${total} TL</b><br>
+        📦 Toplam Sipariş: <b>${orders.length}</b><br>
+        📅 Bugünkü Satış: <b>${today}</b>
+      `;
+    });
+}
+loadStats();
+</script>
+
+</body>
+</html>

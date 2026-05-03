@@ -1,121 +1,185 @@
+
 require("dotenv").config();
+console.log("URI:", process.env.IYZICO_URI);
 
 const express = require("express");
 const cors = require("cors");
-const Iyzipay = require("iyzipay");
+const fs = require("fs");
+// const Iyzipay = require("iyzipay");
+
+const path = require("path");
+
+const ordersFile = path.join(__dirname, "orders.json");
+
+let orders = [];
+
+if (fs.existsSync(ordersFile)) {
+  orders = JSON.parse(fs.readFileSync(ordersFile, "utf8"));
+}
+
+function saveOrders() {
+  fs.writeFileSync(ordersFile, JSON.stringify(orders, null, 2));
+}
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
 // iyzico ayar
+/*
 const iyzipay = new Iyzipay({
-  apiKey: process.env.IYZICO_API_KEY,
-  secretKey: process.env.IYZICO_SECRET_KEY,
-  uri: process.env.IYZICO_URI
+  apiKey: process.env.IYIZICO_API_KEY,
+  secretKey: process.env.IYIZICO_SECRET_KEY,
+  uri: "https://sandbox-api.iyzipay.com"
 });
+*/
 
-app.get("/products", (req, res) => {
-  res.json([
-    {
-      id: 1,
-      name: "GTA 5",
-      price: 299,
-      stock: 1,
-      image: "https://upload.wikimedia.org/wikipedia/en/a/a5/Grand_Theft_Auto_V.png"
-    }
-  ]);
-});
-
-// 🔥 ÖDEME BAŞLAT
-app.post("/start-payment", (req, res) => {
-  const request = {
-    locale: Iyzipay.LOCALE.TR,
-    conversationId: "gamezone-" + Date.now(),
-    price: "299",
-    paidPrice: "299",
-    currency: Iyzipay.CURRENCY.TRY,
-    basketId: "GTA5",
-    paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
-
-    // 🔴 ŞU AN LOCAL TEST (KESİN ÇALIŞIR)
-    callbackUrl: "https://gamezone-2026.onrender.com/payment-callback",
-    buyer: {
-      id: "1",
-      name: "Emre",
-      surname: "Gungor",
-      gsmNumber: "+905350000000",
-      email: "test@test.com",
-      identityNumber: "11111111111",
-      registrationAddress: "Konya",
-      city: "Konya",
-      country: "Turkey",
-      zipCode: "42000",
-      ip: "85.34.78.112"
-    },
-
-    shippingAddress: {
-      contactName: "Emre Gungor",
-      city: "Konya",
-      country: "Turkey",
-      address: "Konya",
-      zipCode: "42000"
-    },
-
-    billingAddress: {
-      contactName: "Emre Gungor",
-      city: "Konya",
-      country: "Turkey",
-      address: "Konya",
-      zipCode: "42000"
-    },
-
-    basketItems: [
-      {
-        id: "1",
-        name: "GTA 5",
-        category1: "Oyun",
-        itemType: Iyzipay.BASKET_ITEM_TYPE.VIRTUAL,
-        price: "299"
-      }
+// ✅ ÜRÜNLER BURADA OLACAK
+let products = [
+  {
+    id: 1,
+    name: "GTA 5",
+    price: 500,
+    image: "https://cdn.cloudflare.steamstatic.com/steam/apps/271590/header.jpg",
+    keys: [
+      "GTA5-AAA111",
+      "GTA5-BBB222",
+      "GTA5-CCC333"
     ]
-  };
+  },
+  {
+    id: 2,
+    name: "Cyberpunk",
+    price: 400,
+    image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg",
+    keys: [
+      "CYBER-111",
+      "CYBER-222"
+    ]
+  }
+];
 
-  iyzipay.checkoutFormInitialize.create(request, (err, result) => {
-    if (err) return res.json({ success: false, message: err.message });
 
-    if (result.status === "success") {
-      return res.json({
-        success: true,
-        paymentPageUrl: result.paymentPageUrl
-      });
-    }
+const ORDERS_FILE = "orders.json";
 
-    res.json({ success: false, message: result.errorMessage });
+if (fs.existsSync(ORDERS_FILE)) {
+  orders = JSON.parse(fs.readFileSync(ORDERS_FILE, "utf8"));
+}
+
+function saveOrders() {
+  fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
+}
+
+
+const DB_FILE = "products.json";
+
+if (fs.existsSync(DB_FILE)) {
+  products = JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
+}
+
+function saveProducts() {
+  fs.writeFileSync(DB_FILE, JSON.stringify(products, null, 2));
+}
+
+// ✅ ÜRÜNLERİ GÖNDER
+app.get("/products", (req, res) => {
+  res.json(products.map(p => ({
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    image: p.image,
+    stock: p.keys.length
+  })));
+});
+
+// ✅ ÖDEME BAŞLAT
+app.post("/start-payment", (req, res) => {
+  const { productId, customerName } = req.body;
+  const product = products.find(p => p.id === productId);
+
+  if (!product || product.keys.length === 0) {
+    return res.json({ success: false });
+  }
+
+  // fake ödeme linki (test için)
+  res.json({
+    paymentPageUrl: `/payment-success?productId=${productId}&customerName=${encodeURIComponent(customerName)}`
   });
 });
 
+// ✅ ÖDEME TAMAMLANDI → KEY VER
+app.get("/payment-success", (req, res) => {
+  const productId = parseInt(req.query.productId);
+  const customerName = req.query.customerName || "İsimsiz";
 
-// 🔥 CALLBACK (KEY BURADA VERİLİR)
-app.all("/payment-callback", (req, res) => {
-  const key = "GTA5-" + Math.random().toString(36).substring(2, 12).toUpperCase();
+  const product = products.find(p => p.id === productId);
 
-  res.send(`
-    <body style="background:#0b1020;color:white;font-family:Arial;text-align:center;padding:50px">
-      <h1>✅ Ödeme Başarılı</h1>
-      <h2>🎮 Keyiniz:</h2>
-      <h1 style="color:#22c55e">${key}</h1>
-      <a href="/" style="color:white">Siteye dön</a>
-    </body>
-  `);
+  if (!product || product.keys.length === 0) {
+    return res.send("Key yok ❌");
+  }
+
+  const key = product.keys.shift();
+  orders.push({
+  productName: product.name,
+  buyerName: customerName,
+  price: product.price,
+  key: key,
+  date: new Date().toLocaleString("tr-TR")
 });
 
-// 🚀 SERVER
-const PORT = process.env.PORT || 3002;
+saveOrders();
+saveProducts();
 
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
+  res.redirect(`/success.html?key=${encodeURIComponent(key)}`);
+});
+
+app.post("/add-key", (req, res) => {
+app.get("/orders", (req, res) => {
+  res.json(orders);
+});
+  const { productId, key, password } = req.body;
+
+  console.log("Gelen ID:", productId);
+
+  if (password !== "1234") {
+    return res.json({ success: false, message: "Şifre yanlış" });
+  }
+
+  const product = products.find(p => p.id == productId);
+
+  if (!product) {
+    return res.json({ success: false });
+  }
+
+  product.keys.push(key);
+  saveProducts();
+
+  res.json({ success: true });
+});
+
+app.post("/delete-order", (req, res) => {
+  const { index } = req.body;
+
+  orders.splice(index, 1);
+  saveOrders();
+
+  res.json({ success: true });
+});
+
+app.get("/payment-success", (req, res) => {
+  res.redirect("/success.html");
+});
+
+app.get("/payment-success", (req, res) => {
+  res.redirect("/success.html");
+});
+
+app.get("/orders", (req, res) => {
+  res.json(orders);
+});
+
+app.listen(3002, () => {
+  console.log("🚀 Server running on http://localhost:3002");
 });

@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "GTA 5",
+    "price": 500,
+    "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/271590/header.jpg",
+    "keys": []
+  },
+  {
+    "id": 2,
+    "name": "Cyberpunk",
+    "price": 400,
+    "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg",
+    "keys": []
+  }
+]

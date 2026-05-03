@@ -1,9 +1,10 @@
+const API = "http://localhost:3002";
 async function loadProducts() {
   const productsDiv = document.getElementById("products");
   productsDiv.innerHTML = "Yükleniyor...";
 
   try {
-    const res = await fetch("/products");
+    const res = await fetch(API + "/products");
     const products = await res.json();
 
     productsDiv.innerHTML = "";
@@ -14,8 +15,10 @@ async function loadProducts() {
       card.innerHTML = `
         <img src="${product.image}" width="200">
         <h3>${product.name}</h3>
-        <p>${product.price}₺</p>
-        <p>Stok: ${product.stock}</p>
+        <p>${product.price}₺</p> 
+
+        <p>Stok: ${product.stock}</p>        
+
         <button onclick="completePayment(${product.id})">Satın Al</button>
       `;
 
@@ -28,12 +31,14 @@ async function loadProducts() {
 }
 
 async function completePayment(id) {
-  const res = await fetch("/start-payment", {
+  const customerName = prompt("Adını yaz:");
+
+  const res = await fetch(API + "/start-payment", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ productId: id })
+    body: JSON.stringify({ productId: id, customerName: customerName })
   });
 
   const data = await res.json();
