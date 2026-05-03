@@ -158,8 +158,6 @@ app.get("/orders", (req, res) => {
   res.json(orders);
 });
 
-const path = require("path");
-
 // public klasörünü aç
 app.use(express.static(path.join(__dirname, "public")));
 
