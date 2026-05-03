@@ -1,46 +1,48 @@
-window.onload = () => {
+async function loadProducts() {
+  const productsDiv = document.getElementById("products");
+  productsDiv.innerHTML = "Yükleniyor...";
 
-  fetch("/products")
-    .then(res => res.json())
-    .then(data => {
-      const container = document.querySelector(".products");
+  try {
+    const res = await fetch("/products");
+    const products = await res.json();
 
-      container.innerHTML = "";
+    productsDiv.innerHTML = "";
 
-      data.forEach(p => {
-        container.innerHTML += `
-          <div style="border:1px solid white; padding:10px; margin:10px;">
-            <img src="${p.image}" width="200">
-            <h3>${p.name}</h3>
-            <p>${p.price}₺</p>
-            <p>Stok: ${p.stock}</p>
-            <input placeholder="Adınız">
-            <input placeholder="Telefon">
-            <button onclick="buy(${p.id})">Satın Al</button>
-          </div>
-        `;
-      });
-    })
-    .catch(() => {
-      document.querySelector(".products").innerHTML = "❌ Sunucu bağlantı hatası";
+    products.forEach(product => {
+      const card = document.createElement("div");
+
+      card.innerHTML = `
+        <img src="${product.image}" width="200">
+        <h3>${product.name}</h3>
+        <p>${product.price}₺</p>
+        <p>Stok: ${product.stock}</p>
+        <button onclick="completePayment(${product.id})">Satın Al</button>
+      `;
+
+      productsDiv.appendChild(card);
     });
 
-};
+  } catch {
+    productsDiv.innerHTML = "❌ Sunucu bağlantı hatası";
+  }
+}
 
-function buy(id) {
-  fetch("/start-payment", {
+async function completePayment(id) {
+  const res = await fetch("/start-payment", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ productId: id })
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("❌ Ödeme başlatılamadı");
-      }
-    });
+  });
+
+  const data = await res.json();
+
+  if (data.paymentPageUrl) {
+    window.location.href = data.paymentPageUrl;
+  } else {
+    alert("Ödeme başlatılamadı");
+  }
 }
+
+window.onload = loadProducts;
