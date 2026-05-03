@@ -118,5 +118,5 @@ app.all("/payment-callback", (req, res) => {
 const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, () => {
-  console.log("GameZone çalışıyor");
+  console.log("Server running on port " + PORT);
 });
