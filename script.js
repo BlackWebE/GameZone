@@ -1,56 +1,43 @@
-const API = "http://localhost:3002";
+// Ürünleri çek
+fetch("/products")
+  .then(res => res.json())
+  .then(data => {
+    const container = document.querySelector(".products");
+    container.innerHTML = "";
 
-async function loadProducts() {
-  const productsDiv = document.getElementById("products");
-  productsDiv.innerHTML = "Yükleniyor...";
-
-  try {
-    const res = await fetch(`${API}/products`);
-    const products = await res.json();
-
-    productsDiv.innerHTML = "";
-
-    products.forEach(product => {
-      const card = document.createElement("div");
-      card.className = "product-card";
-
-      card.innerHTML = `
-        <img src="${product.image}" alt="${product.name}">
-        <h3>${product.name}</h3>
-        <p class="price">${product.price}₺</p>
-        <p class="stock">Stok: ${product.stock}</p>
-
-        <input id="name-${product.id}" placeholder="Adınız">
-        <input id="phone-${product.id}" placeholder="Telefon">
-
-        <button onclick="completePayment(${product.id})" ${product.stock <= 0 ? "disabled" : ""}>
-          ${product.stock <= 0 ? "Stok Yok" : "Satın Al"}
-        </button>
+    data.forEach(p => {
+      container.innerHTML += `
+        <div class="product">
+          <img src="${p.image}" width="200">
+          <h3>${p.name}</h3>
+          <p>${p.price}₺</p>
+          <p>Stok: ${p.stock}</p>
+          <input placeholder="Adınız">
+          <input placeholder="Telefon">
+          <button onclick="buy(${p.id})">Satın Al</button>
+        </div>
       `;
-
-      productsDiv.appendChild(card);
     });
-  } catch (err) {
-    productsDiv.innerHTML = "❌ Sunucu bağlantı hatası";
-  }
-}
+  })
+  .catch(() => {
+    document.querySelector(".products").innerHTML = "❌ Sunucu bağlantı hatası";
+  });
 
-function completePayment(productId) {
-  fetch("http://localhost:3002/start-payment", {
+// Satın alma
+function buy(id) {
+  fetch("/start-payment", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ productId })
+    body: JSON.stringify({ productId: id })
   })
     .then(res => res.json())
     .then(data => {
-      if (data.success) {
-        window.location.href = data.paymentPageUrl;
+      if (data.url) {
+        window.location.href = data.url; // iyzico sayfasına gider
       } else {
-        alert("Ödeme başlatılamadı: " + data.message);
+        alert("❌ Ödeme başlatılamadı");
       }
     });
 }
-
-loadProducts();
