@@ -25,7 +25,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, "public")));
 
 // iyzico ayar
 /*
@@ -136,15 +136,10 @@ saveProducts();
 });
 
 app.post("/add-key", (req, res) => {
-app.get("/orders", (req, res) => {
-  res.json(orders);
-});
   const { productId, key, password } = req.body;
 
-  console.log("Gelen ID:", productId);
-
   if (password !== "1234") {
-    return res.json({ success: false, message: "Şifre yanlış" });
+    return res.json({ success: false });
   }
 
   const product = products.find(p => p.id == productId);
@@ -159,25 +154,18 @@ app.get("/orders", (req, res) => {
   res.json({ success: true });
 });
 
-app.post("/delete-order", (req, res) => {
-  const { index } = req.body;
-
-  orders.splice(index, 1);
-  saveOrders();
-
-  res.json({ success: true });
-});
-
-app.get("/payment-success", (req, res) => {
-  res.redirect("/success.html");
-});
-
-app.get("/payment-success", (req, res) => {
-  res.redirect("/success.html");
-});
-
 app.get("/orders", (req, res) => {
   res.json(orders);
+});
+
+const path = require("path");
+
+// public klasörünü aç
+app.use(express.static(path.join(__dirname, "public")));
+
+// ana sayfa
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(3002, () => {
