@@ -42,7 +42,7 @@ app.post("/start-payment", (req, res) => {
     paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
 
     // 🔴 ŞU AN LOCAL TEST (KESİN ÇALIŞIR)
-    callbackUrl: "https://senin-siten.onrender.com/payment-callback",
+    callbackUrl: "https://gamezone-d3gr.onrender.com/payment-callback"
 
     buyer: {
       id: "1",
