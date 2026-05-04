@@ -2,29 +2,42 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GameZone PRO</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <h1>🎮 GameZone PRO</h1>
-  <p>Oyun key mağazası</p>
+<header class="hero">
+  <div>
+    <h1>🎮 GameZone PRO</h1>
+    <p>Orijinal oyun key mağazası</p>
+  </div>
+  <a href="admin.html" class="admin-btn">Admin Panel</a>
+</header>
 
-  <h2>🔥 Oyunlar</h2>
+<section class="info">
+  <div>⚡ Anında Teslim</div>
+  <div>🔑 Dijital Key</div>
+  <div>🛡️ Güvenli Alışveriş</div>
+</section>
 
-  <div id="products"></div>
+<main>
+  <h2>🔥 Popüler Oyunlar</h2>
 
-  <div id="buyBox" style="display:none; margin-top:20px;">
-  <input id="customerName" placeholder="Adını gir" style="padding:10px;">
-  <button onclick="confirmBuy()">Satın Al</button>
-</div>
+  <div id="products" class="products"></div>
 
-  <!-- 🔥 BURASI ÖNEMLİ -->
-  
+  <div id="buyBox" class="buy-box" style="display:none;">
+    <h3>Satın Alma Bilgisi</h3>
+    <input id="customerName" placeholder="Adını gir">
+    <button onclick="confirmBuy()">Ödemeye Geç</button>
+  </div>
+</main>
 
-  <!-- 🔥 SCRIPT EN ALTTA -->
-  <script src="script.js"></script>
+<footer>
+  © 2026 GameZone PRO - Dijital oyun key satış platformu
+</footer>
 
+<script src="script.js"></script>
 </body>
 </html>
