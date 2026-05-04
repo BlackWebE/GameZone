@@ -23,7 +23,7 @@ async function loadProducts() {
         <h3>${product.name}</h3>
         <p>${product.price}₺</p>
         <p>Stok: ${product.stock}</p>
-        <button onclick="completePayment(${product.id})">Satın Al</button>
+        <button onclick="buy(${product.id})">Satın Al</button>
       `;
 
       productsDiv.appendChild(card);
