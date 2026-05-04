@@ -1,6 +1,6 @@
 
 async function loadProducts() {
-  const productsDiv = document.getElementById("products");
+  const productsDiv = document.querySelector(".products")
   productsDiv.innerHTML = "Yükleniyor...";
 
   try {
