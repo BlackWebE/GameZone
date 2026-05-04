@@ -1,10 +1,10 @@
-const API = "http://localhost:3002";
+
 async function loadProducts() {
   const productsDiv = document.getElementById("products");
   productsDiv.innerHTML = "Yükleniyor...";
 
   try {
-    const res = await fetch(API + "/products");
+    const res = await fetch("/products");
     const products = await res.json();
 
     productsDiv.innerHTML = "";
@@ -33,7 +33,7 @@ async function loadProducts() {
 async function completePayment(id) {
   const customerName = prompt("Adını yaz:");
 
-  const res = await fetch(API + "/start-payment", {
+  fetch("/start-payment"
     method: "POST",
     headers: {
       "Content-Type": "application/json"
