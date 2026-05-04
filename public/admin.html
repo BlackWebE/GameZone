@@ -21,9 +21,7 @@
 
 <br><br>
 
-<button onclick="addKey()" style="padding:10px 20px;background:green;color:white;border:none;">
-  Key Ekle
-</button>
+<button onclick="addKey()">Key Ekle</button>
 
 <p id="result"></p>
 
@@ -46,7 +44,7 @@
 <div id="orderList"></div>
 
 <script>
-const API = "http://localhost:3002";
+const API = "";
 
 async function addKey() {
   const productId = document.getElementById("productId").value;
@@ -72,7 +70,7 @@ async function loadOrders() {
   const res = await fetch(API + "/orders");
   const data = await res.json();
 
-  const div = document.getElementById("orders");
+  const div = document.getElementById("orderList");
   div.innerHTML = data.map((o, i) => `
   <p>
     👤 ${o.customerName} - 🎮 ${o.productName} - 🔑 ${o.key} - 🕒 ${o.date}
@@ -99,7 +97,7 @@ loadOrders();
 
 <script>
 function loadOrders() {
-  fetch("http://localhost:3002/orders")
+  fetch("/orders")
     .then(res => res.json())
     .then(orders => {
       const orderList = document.getElementById("orderList");
@@ -131,7 +129,7 @@ function loadOrders() {
 }
 
 function deleteOrder(index) {
-  fetch("http://localhost:3002/delete-order", {
+  fetch("/delete-order", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -150,7 +148,7 @@ setInterval(loadOrders, 3000);
 setInterval(loadStats, 3000);
 
 function loadStats() {
-  fetch("http://localhost:3002/orders")
+  fetch("/orders")
     .then(res => res.json())
     .then(orders => {
 
