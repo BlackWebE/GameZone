@@ -1,6 +1,6 @@
 
 async function loadProducts() {
-  const productsDiv = document.querySelector(".products")
+  const productsDiv = document.getElementById("products")
   productsDiv.innerHTML = "Yükleniyor...";
 
   try {
@@ -33,21 +33,20 @@ async function loadProducts() {
 async function completePayment(id) {
   const customerName = prompt("Adını yaz:");
 
-  fetch("/start-payment"
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ productId: id, customerName: customerName })
-  });
-
-  const data = await res.json();
-
+  await fetch("/start-payment", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ productId: id, customerName: customerName })
+})
+.then(res => res.json())
+.then(data => {
   if (data.paymentPageUrl) {
     window.location.href = data.paymentPageUrl;
   } else {
-    alert("Ödeme başlatılamadı");
+    alert("Stok yok ❌");
   }
-}
+});
 
 window.onload = loadProducts;
